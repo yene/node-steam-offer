@@ -371,11 +371,11 @@ SteamOffer.prototype.chatMsg = function(msg, callback) {
   }, callback);
 };
 
-SteamOffer.prototype.miniprofile = function(steamid) {
+SteamOffer.prototype.miniprofile = function(steamid, callback) {
   var self = this;
 
   this._request.get({
-    uri: 'http://steamcommunity.com/actions/PlayerList/?type=friends'
+    uri: 'http://steamcommunity.com/profiles/' + steamid + '/inventory/'
   }, function(error, response, body) {
     if (error) {
       self.emit('debug', 'getting miniprofile: ' + error);
@@ -383,27 +383,11 @@ SteamOffer.prototype.miniprofile = function(steamid) {
     }
     
     var $ = cheerio.load(body)
-    // <div class="friendBlock persona in-game" data-miniprofile="4928904">
-    //    <a class="friendBlockLinkOverlay" href="http://steamcommunity.com/profiles/76561197965194632"></a>
-
-    var friends = {};
-    $('div.friendBlock').each(function(i, elem) {
-      var miniprofile = $(this).attr('data-miniprofile');
-      var profileURL = $(this).find('a').attr('href');
-      friends[miniprofile] = profileURL;
-      /*
-      self._request.get({
-        uri: profileURL + '?xml=1'
-      }, function(error, response, body) {
-        if (error) {
-          console.log('error : ' + error);
-        }
-        var $ = cheerio.load(body);
-        var profileID = $('steamID64').text();
-        friends[miniprofile] = profileID;
-      });
-      */
-    });
-    return friends;
+    var onclick = $('a.inventory_newtradeoffer').attr('onclick');
+    onclick = onclick.match(/\(.+?\)/g).toString();
+    onclick = onclick.replace('(','');
+    onclick = onclick.replace(')','');
+    onclick = onclick.trim();
+    callback(onclick);
   });
 };
