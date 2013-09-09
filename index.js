@@ -1,17 +1,17 @@
-module.exports = SteamTrade;
+module.exports = SteamOffer;
 
 var request = require('request');
 
-require('util').inherits(SteamTrade, require('events').EventEmitter);
+require('util').inherits(SteamOffer, require('events').EventEmitter);
 
-function SteamTrade() {
+function SteamOffer() {
   require('events').EventEmitter.call(this);
   
   this._j = request.jar();
   this._request = request.defaults({jar:this._j});
 }
 
-SteamTrade.prototype._loadForeignInventory = function(appid, contextid) {
+SteamOffer.prototype._loadForeignInventory = function(appid, contextid) {
   var self = this;
   
   this._request.post({
@@ -51,7 +51,7 @@ SteamTrade.prototype._loadForeignInventory = function(appid, contextid) {
   });
 };
 
-SteamTrade.prototype._onTradeStatusUpdate = function(body, callback) {  
+SteamOffer.prototype._onTradeStatusUpdate = function(body, callback) {  
   clearTimeout(this._timerTradePoll);
   
   var self = this;
@@ -194,7 +194,7 @@ SteamTrade.prototype._onTradeStatusUpdate = function(body, callback) {
     this.emit('ready');
 };
 
-SteamTrade.prototype._send = function(action, data, callback) {
+SteamOffer.prototype._send = function(action, data, callback) {
   clearTimeout(this._timerTradePoll);
   
   data.sessionid = this.sessionID;
@@ -226,11 +226,11 @@ SteamTrade.prototype._send = function(action, data, callback) {
   });
 };
 
-SteamTrade.prototype.setCookie = function(cookie) {
+SteamOffer.prototype.setCookie = function(cookie) {
   this._j.add(request.cookie(cookie));
 };
 
-SteamTrade.prototype.open = function(steamID, callback) {
+SteamOffer.prototype.open = function(steamID, callback) {
   this.tradePartnerSteamID = steamID;
   this.themAssets = [];
   this._themInventories = {};
@@ -244,14 +244,14 @@ SteamTrade.prototype.open = function(steamID, callback) {
   }, callback);
 };
 
-SteamTrade.prototype.getContexts = function(callback) {
+SteamOffer.prototype.getContexts = function(callback) {
   this._request.get('http://steamcommunity.com/trade/' + this.tradePartnerSteamID, function(error, response, body) {
     var appContextData = body.match(/var g_rgAppContextData = (.*);/);
     callback(appContextData && JSON.parse(appContextData[1]));
   });
 };
 
-SteamTrade.prototype.loadInventory = function(appid, contextid, callback) {
+SteamOffer.prototype.loadInventory = function(appid, contextid, callback) {
   this._request.get({
     uri: 'http://steamcommunity.com/my/inventory/json/' + appid + '/' + contextid,
     json: true
@@ -284,7 +284,7 @@ function mergeWithDescriptions(items, descriptions, contextid) {
   });
 }
 
-SteamTrade.prototype.addItems = function(items, callback) {
+SteamOffer.prototype.addItems = function(items, callback) {
   var count = items.length;
   var slot = 0;
   var results = [];
@@ -311,7 +311,7 @@ SteamTrade.prototype.addItems = function(items, callback) {
   }.bind(this));
 };
 
-SteamTrade.prototype.removeItem = function(item, callback) {
+SteamOffer.prototype.removeItem = function(item, callback) {
   this._send('removeitem', {
     appid: item.appid,
     contextid: item.contextid,
@@ -319,21 +319,21 @@ SteamTrade.prototype.removeItem = function(item, callback) {
   }, callback);
 };
 
-SteamTrade.prototype.ready = function(callback) {
+SteamOffer.prototype.ready = function(callback) {
   this._send('toggleready', {
     version: this._version,
     ready: true
   }, callback);
 };
 
-SteamTrade.prototype.unready = function(callback) {
+SteamOffer.prototype.unready = function(callback) {
   this._send('toggleready', {
     version: this._version,
     ready: false
   }, callback);
 };
 
-SteamTrade.prototype.confirm = function(callback) {
+SteamOffer.prototype.confirm = function(callback) {
   this._send('confirm', {
     logpos: this._nextLogPos,
     version: this._version
@@ -352,7 +352,7 @@ SteamTrade.prototype.confirm = function(callback) {
   }.bind(this));
 };
 
-SteamTrade.prototype.cancel = function(callback) {
+SteamOffer.prototype.cancel = function(callback) {
   this._send('cancel', {}, function(res) {
     if (res.success) {
       // stop polling
@@ -362,7 +362,7 @@ SteamTrade.prototype.cancel = function(callback) {
   }.bind(this));
 };
 
-SteamTrade.prototype.chatMsg = function(msg, callback) {
+SteamOffer.prototype.chatMsg = function(msg, callback) {
   this._send('chat', {
     message: msg,
     logpos: this._nextLogPos,
