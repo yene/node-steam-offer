@@ -1,6 +1,7 @@
 module.exports = SteamOffer;
 
 var request = require('request');
+var cheerio = require('cheerio');
 
 require('util').inherits(SteamOffer, require('events').EventEmitter);
 
@@ -368,4 +369,41 @@ SteamOffer.prototype.chatMsg = function(msg, callback) {
     logpos: this._nextLogPos,
     version: this._version
   }, callback);
+};
+
+SteamOffer.prototype.miniprofile = function(steamid) {
+  var self = this;
+
+  this._request.get({
+    uri: 'http://steamcommunity.com/actions/PlayerList/?type=friends'
+  }, function(error, response, body) {
+    if (error) {
+      self.emit('debug', 'getting miniprofile: ' + error);
+      return;
+    }
+    
+    var $ = cheerio.load(body)
+    // <div class="friendBlock persona in-game" data-miniprofile="4928904">
+    //    <a class="friendBlockLinkOverlay" href="http://steamcommunity.com/profiles/76561197965194632"></a>
+
+    var friends = {};
+    $('div.friendBlock').each(function(i, elem) {
+      var miniprofile = $(this).attr('data-miniprofile');
+      var profileURL = $(this).find('a').attr('href');
+      friends[miniprofile] = profileURL;
+      /*
+      self._request.get({
+        uri: profileURL + '?xml=1'
+      }, function(error, response, body) {
+        if (error) {
+          console.log('error : ' + error);
+        }
+        var $ = cheerio.load(body);
+        var profileID = $('steamID64').text();
+        friends[miniprofile] = profileID;
+      });
+      */
+    });
+    return friends;
+  });
 };
