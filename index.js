@@ -12,7 +12,7 @@ function SteamOffer() {
   this._request = request.defaults({jar:this._j});
 }
 
-SteamOffer.prototype._loadForeignInventory = function(appid, contextid) {
+SteamOffer.prototype.loadForeignInventory = function(appid, contextid, callback) {
   var self = this;
   
   this._request.post({
@@ -31,7 +31,7 @@ SteamOffer.prototype._loadForeignInventory = function(appid, contextid) {
     if (error) {
       self.emit('debug', 'loading inventory: ' + error);
       // retry
-      self._loadForeignInventory(appid, contextid);
+      self._loadForeignInventory(appid, contextid, callback);
       return;
     }
     
@@ -43,12 +43,7 @@ SteamOffer.prototype._loadForeignInventory = function(appid, contextid) {
       }
     }
     
-    if (!self._themInventories[appid]) {
-      self._themInventories[appid] = {};
-    }
-    self._themInventories[appid][contextid] = body.rgInventory;
-    
-    self._loadingInventoryData = false;
+    callback(body.rgInventory);
   });
 };
 
@@ -64,11 +59,21 @@ SteamOffer.prototype.open = function(steamID, miniID, callback) {
   this._meAssets = [];
   this._nextLogPos = 0;
   this._version = 1;
+    
+  var self = this;
   
-  this._send('tradestatus', {
-    logpos: this._nextLogPos,
-    version: this._version
-  }, callback);
+  this._request.get({
+    uri: 'http://steamcommunity.com/tradeoffer/new/?partner=' + this.tradePartnerMiniID
+  }, function(error, response, body) {    
+    if (error || response.statusCode != 200) {
+      self.emit('debug', 'sending ' + action + ': ' + (error || response.statusCode));
+      return;
+    }
+    
+    // check body for error
+    
+    callback();
+  });
 };
 
 SteamOffer.prototype.loadInventory = function(appid, contextid, callback) {
