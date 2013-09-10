@@ -16,15 +16,15 @@ SteamOffer.prototype._loadForeignInventory = function(appid, contextid) {
   var self = this;
   
   this._request.post({
-    uri: 'http://steamcommunity.com/trade/' + this.tradePartnerSteamID + '/foreigninventory',
+    uri: 'http://steamcommunity.com/tradeoffer/new/partnerinventory/',
     headers: {
-      referer: 'http://steamcommunity.com/trade/1'
+      referer: 'http://steamcommunity.com/tradeoffer/new/?partner=' + this.tradePartnerMiniID
     },
     form: {
-      sessionid: this.sessionID,
-      steamid: this.tradePartnerSteamID,
       appid: appid,
-      contextid: contextid
+      contextid: contextid,
+      partner: this.tradePartnerSteamID,
+      sessionid: this.sessionID
     },
     json: true
   }, function(error, response, body) {
@@ -231,8 +231,9 @@ SteamOffer.prototype.setCookie = function(cookie) {
   this._j.add(request.cookie(cookie));
 };
 
-SteamOffer.prototype.open = function(steamID, callback) {
+SteamOffer.prototype.open = function(steamID, miniID, callback) {
   this.tradePartnerSteamID = steamID;
+  this.tradePartnerMiniID = miniID;
   this.themAssets = [];
   this._themInventories = {};
   this._meAssets = [];
@@ -245,16 +246,9 @@ SteamOffer.prototype.open = function(steamID, callback) {
   }, callback);
 };
 
-SteamOffer.prototype.getContexts = function(callback) {
-  this._request.get('http://steamcommunity.com/trade/' + this.tradePartnerSteamID, function(error, response, body) {
-    var appContextData = body.match(/var g_rgAppContextData = (.*);/);
-    callback(appContextData && JSON.parse(appContextData[1]));
-  });
-};
-
 SteamOffer.prototype.loadInventory = function(appid, contextid, callback) {
   this._request.get({
-    uri: 'http://steamcommunity.com/my/inventory/json/' + appid + '/' + contextid,
+    uri: 'http://steamcommunity.com/my/inventory/json/' + appid + '/' + contextid + '?trading=1',
     json: true
   }, function(error, response, body) {
     if (error || response.statusCode != 200) {
