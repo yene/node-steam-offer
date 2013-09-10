@@ -128,4 +128,28 @@ SteamOffer.prototype.miniprofile = function(steamid, callback) {
     onclick = onclick.trim();
     callback(onclick);
   });
+
+SteamOffer.prototype.sendOffer = function(tradeOffer, message, callback) {
+  this._request.post({
+    uri: 'http://steamcommunity.com/tradeoffer/new/send',
+    headers: {
+      referer: 'http://steamcommunity.com/tradeoffer/new/?partner=' + this.tradePartnerMiniID
+    },
+    form: {
+      json_tradeoffer: {"newversion":true,"version":3,"me":{"assets":[{"appid":570,"contextid":2,"amount":1,"assetid":"230318653"}],"currency":[],"ready":false},"them":{"assets":[{"appid":570,"contextid":2,"amount":1,"assetid":"1000690776"}],"currency":[],"ready":false}},
+      tradeoffermessage: message,
+      partner: this.tradePartnerSteamID,
+      sessionid: this.sessionID
+    },
+    json: true
+  }, function(error, response, body) {
+    if (error) {
+      self.emit('debug', 'loading inventory: ' + error);
+      return;
+    }
+    console.log("done");
+  });
+}
+
+
 };
