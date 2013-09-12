@@ -54,11 +54,6 @@ SteamOffer.prototype.setCookie = function(cookie) {
 SteamOffer.prototype.open = function(steamID, miniID, callback) {
   this.tradePartnerSteamID = steamID;
   this.tradePartnerMiniID = miniID;
-  this.themAssets = [];
-  this._themInventories = {};
-  this._meAssets = [];
-  this._nextLogPos = 0;
-  this._version = 1;
     
   var self = this;
   
@@ -150,6 +145,4 @@ SteamOffer.prototype.sendOffer = function(tradeOffer, message, callback) {
     console.log("done");
   });
 }
-
-
 };
