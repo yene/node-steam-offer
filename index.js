@@ -123,6 +123,7 @@ SteamOffer.prototype.miniprofile = function(steamid, callback) {
     onclick = onclick.trim();
     callback(onclick);
   });
+};
 
 SteamOffer.prototype.sendOffer = function(tradeOffer, message, callback) {
   this._request.post({
@@ -144,5 +145,16 @@ SteamOffer.prototype.sendOffer = function(tradeOffer, message, callback) {
     }
     console.log("done");
   });
-}
+};
+
+
+
+SteamOffer.prototype.getRarity = function(anArray) {
+  var rarity = "";
+  for (var tagKey in anArray.tags) {
+    if (anArray.tags[tagKey].category === "Rarity") {
+      rarity = anArray.tags[tagKey].name;
+    }
+  }
+  return rarity;
 };
