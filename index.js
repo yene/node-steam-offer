@@ -125,14 +125,18 @@ SteamOffer.prototype.miniprofile = function(steamid, callback) {
   });
 };
 
-SteamOffer.prototype.sendOffer = function(tradeOffer, message, callback) {
+SteamOffer.prototype.sendOffer = function(me_assets, them_assets, message, callback) {
+  var json_tradeoffer = {"newversion":true,"version":3,"me":{"assets":[],"currency":[],"ready":false},"them":{"assets":[],"currency":[],"ready":false}};
+  json_tradeoffer.me.assets = me_assets;
+  json_tradeoffer.them.assets = them_assets;
+
   this._request.post({
     uri: 'http://steamcommunity.com/tradeoffer/new/send',
     headers: {
       referer: 'http://steamcommunity.com/tradeoffer/new/?partner=' + this.tradePartnerMiniID
     },
     form: {
-      json_tradeoffer: {"newversion":true,"version":3,"me":{"assets":[{"appid":570,"contextid":2,"amount":1,"assetid":"230318653"}],"currency":[],"ready":false},"them":{"assets":[{"appid":570,"contextid":2,"amount":1,"assetid":"1000690776"}],"currency":[],"ready":false}},
+      json_tradeoffer: JSON.stringify(json_tradeoffer),
       tradeoffermessage: message,
       partner: this.tradePartnerSteamID,
       sessionid: this.sessionID
@@ -140,14 +144,15 @@ SteamOffer.prototype.sendOffer = function(tradeOffer, message, callback) {
     json: true
   }, function(error, response, body) {
     if (error) {
-      self.emit('debug', 'loading inventory: ' + error);
+      self.emit('debug', 'sending offer error: ' + error);
+      console.log('sending offer error: ' + error);
       return;
     }
-    console.log("done");
+    // response is {"tradeofferid":"257646"}
+
+    callback();
   });
 };
-
-
 
 SteamOffer.prototype.getRarity = function(anArray) {
   var rarity = "";
