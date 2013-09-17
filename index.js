@@ -11,29 +11,16 @@ function SteamOffer() {
   this._request = request.defaults({jar:this._j});
 }
 
-SteamOffer.prototype.loadForeignInventory = function(appid, contextid, callback) {
-  var self = this;
-  
-  this._request.post({
-    uri: 'http://steamcommunity.com/tradeoffer/new/partnerinventory/',
-    headers: {
-      referer: 'http://steamcommunity.com/tradeoffer/new/?partner=' + this.tradePartnerMiniID
-    },
-    form: {
-      appid: appid,
-      contextid: contextid,
-      partner: this.tradePartnerSteamID,
-      sessionid: this.sessionID
-    },
+SteamOffer.prototype.loadForeignInventory = function(appid, contextid, steamID, callback) {
+  this._request.get({
+    uri: 'http://steamcommunity.com/profiles/' + steamID + '/inventory/json/' + appid + '/' + contextid + '?trading=1',
     json: true
   }, function(error, response, body) {
-    if (error) {
-      self.emit('debug', 'loading inventory: ' + error);
-      // retry
-      self._loadForeignInventory(appid, contextid, callback);
+    if (error || response.statusCode != 200) {
+      this.emit('debug', 'loading my inventory: ' + (error || response.statusCode));
+      this.loadForeignInventory(appid, contextid, steamID, callback);
       return;
     }
-    
     for (var id in body.rgInventory) {
       var item = body.rgInventory[id];
       var description = body.rgDescriptions[item.classid + '_' + item.instanceid];
@@ -41,7 +28,6 @@ SteamOffer.prototype.loadForeignInventory = function(appid, contextid, callback)
         item[key] = description[key];
       }
     }
-    
     callback(body.rgInventory);
   });
 };
