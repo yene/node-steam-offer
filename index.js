@@ -1,7 +1,6 @@
 module.exports = SteamOffer;
 
 var request = require('request');
-var cheerio = require('cheerio');
 
 require('util').inherits(SteamOffer, require('events').EventEmitter);
 
@@ -51,26 +50,6 @@ SteamOffer.prototype.setCookie = function(cookie) {
   this._j.add(request.cookie(cookie));
 };
 
-SteamOffer.prototype.open = function(steamID, miniID, callback) {
-  this.tradePartnerSteamID = steamID;
-  this.tradePartnerMiniID = miniID;
-    
-  var self = this;
-  
-  this._request.get({
-    uri: 'http://steamcommunity.com/tradeoffer/new/?partner=' + this.tradePartnerMiniID
-  }, function(error, response, body) {    
-    if (error || response.statusCode != 200) {
-      self.emit('debug', 'sending ' + action + ': ' + (error || response.statusCode));
-      return;
-    }
-    
-    // check body for error
-    
-    callback();
-  });
-};
-
 SteamOffer.prototype.loadInventory = function(appid, contextid, callback) {
   this._request.get({
     uri: 'http://steamcommunity.com/my/inventory/json/' + appid + '/' + contextid + '?trading=1',
@@ -104,28 +83,7 @@ function mergeWithDescriptions(items, descriptions, contextid) {
   });
 }
 
-SteamOffer.prototype.miniprofile = function(steamid, callback) {
-  var self = this;
-
-  this._request.get({
-    uri: 'http://steamcommunity.com/profiles/' + steamid + '/inventory/'
-  }, function(error, response, body) {
-    if (error) {
-      self.emit('debug', 'getting miniprofile: ' + error);
-      return;
-    }
-    
-    var $ = cheerio.load(body)
-    var onclick = $('a.inventory_newtradeoffer').attr('onclick');
-    onclick = onclick.match(/\(.+?\)/g).toString();
-    onclick = onclick.replace('(','');
-    onclick = onclick.replace(')','');
-    onclick = onclick.trim();
-    callback(onclick);
-  });
-};
-
-SteamOffer.prototype.sendOffer = function(me_assets, them_assets, message, callback) {
+SteamOffer.prototype.sendOffer = function(me_assets, them_assets, message, tradePartnerSteamID, callback) {
   var json_tradeoffer = {"newversion":true,"version":3,"me":{"assets":[],"currency":[],"ready":false},"them":{"assets":[],"currency":[],"ready":false}};
   json_tradeoffer.me.assets = me_assets;
   json_tradeoffer.them.assets = them_assets;
@@ -133,12 +91,12 @@ SteamOffer.prototype.sendOffer = function(me_assets, them_assets, message, callb
   this._request.post({
     uri: 'http://steamcommunity.com/tradeoffer/new/send',
     headers: {
-      referer: 'http://steamcommunity.com/tradeoffer/new/?partner=' + this.tradePartnerMiniID
+      referer: 'http://steamcommunity.com/tradeoffer/new/'
     },
     form: {
       json_tradeoffer: JSON.stringify(json_tradeoffer),
       tradeoffermessage: message,
-      partner: this.tradePartnerSteamID,
+      partner: tradePartnerSteamID,
       sessionid: this.sessionID
     },
     json: true
@@ -148,7 +106,7 @@ SteamOffer.prototype.sendOffer = function(me_assets, them_assets, message, callb
       console.log('sending offer error: ' + error);
       return;
     }
-    // response is {"tradeofferid":"257646"}
+    // body is {"tradeofferid":"257646"}
 
     callback();
   });
