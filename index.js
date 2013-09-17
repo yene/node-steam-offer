@@ -154,6 +154,13 @@ SteamOffer.prototype.sendOffer = function(me_assets, them_assets, message, callb
   });
 };
 
+/*
+// calculate the mini id, requires bignum: https://github.com/justmoon/node-bignum
+SteamOffer.prototype.getAccountID = function(steamID) {
+  return bignum(steamID).sub(0x0110000100000000);
+};
+*/
+
 SteamOffer.prototype.getRarity = function(anArray) {
   var rarity = "";
   for (var tagKey in anArray.tags) {
