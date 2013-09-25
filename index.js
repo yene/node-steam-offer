@@ -70,12 +70,12 @@ function mergeWithDescriptions(items, descriptions, contextid) {
 }
 
 SteamOffer.prototype.sendOffer = function(me_assets, them_assets, message, tradePartnerSteamID, callback) {
-  var json_tradeoffer = {"newversion":true,"version":3,"me":{"assets":[],"currency":[],"ready":false},"them":{"assets":[],"currency":[],"ready":false}};
+  var json_tradeoffer = {"newversion":true,"version":2,"me":{"assets":[],"currency":[],"ready":false},"them":{"assets":[],"currency":[],"ready":false}};
   json_tradeoffer.me.assets = me_assets;
   json_tradeoffer.them.assets = them_assets;
 
   this._request.post({
-    uri: 'http://steamcommunity.com/tradeoffer/new/send',
+    uri: 'https://steamcommunity.com/tradeoffer/new/send',
     headers: {
       referer: 'http://steamcommunity.com/tradeoffer/new/'
     },
