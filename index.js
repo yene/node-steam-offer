@@ -98,6 +98,20 @@ SteamOffer.prototype.sendOffer = function(me_assets, them_assets, message, trade
   });
 };
 
+SteamOffer.prototype.history = function(callback) {
+  this._request.get({
+    uri: 'http://steamcommunity.com/my/tradeoffers/sent/?history=1',
+    json: true
+  }, function(error, response, body) {
+    if (error || response.statusCode != 200) {
+      this.emit('debug', 'loading my inventory: ' + (error || response.statusCode));
+      this.history(callback);
+      return;
+    }
+    callback(body);
+  });
+};
+
 /*
 // calculate the mini id, requires bignum: https://github.com/justmoon/node-bignum
 SteamOffer.prototype.getAccountID = function(steamID) {
