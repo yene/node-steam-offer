@@ -97,9 +97,8 @@ SteamOffer.prototype.sendOffer = function(me_assets, them_assets, message, trade
       console.log("error: offer request was not accepted");
     } else if (body.hasOwnProperty('tradeofferid')) {
       console.log("offer sent: " + body.tradeofferid);
+      callback();
     }
-
-    callback();
   });
 };
 
