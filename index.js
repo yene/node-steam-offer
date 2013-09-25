@@ -110,7 +110,6 @@ SteamOffer.prototype.history = function(callback) {
   }, function(error, response, body) {
     if (error || response.statusCode != 200) {
       this.emit('debug', 'loading my inventory: ' + (error || response.statusCode));
-      this.history(callback);
       return;
     }
     callback(body);
